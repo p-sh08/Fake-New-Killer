@@ -323,9 +323,14 @@ texts_fake_good = [
     "해외 음모론 블로그 번역 글을 인용하여 정부가 다음 달 1일부터 전 국민을 대상으로 신원 관리 및 감시 목적의 미세 바이오칩을 이마 피부 아래에 강제 이식 의무화한다는 가짜 정보가 유포되었습니다."
 ]
 
+# =========================================================================
+st.title("🤖 AI 가짜 뉴스 검출 시스템 (Real AI v7)")
+st.markdown("---")
+st.write("서버 내에서 500개 데이터셋을 실시간 학습하여 오차 없이 판별합니다.")
+st.write("문장과 문장 사이에 띄어 쓰기 하나만 있도록, 한문단으로 기사 수정 후 입력 해 주세요.")
 
 # =========================================================================
-# [1단계] 실시간 AI 학습 함수 (들여쓰기 및 유령 문자 완벽 제거)
+# [4단계] 실시간 AI 학습 엔진 함수 (유령 문자 제거 및 4칸 정렬 완벽 반영)
 # =========================================================================
 @st.cache_resource
 def train_ai_model():
@@ -363,14 +368,14 @@ def train_ai_model():
                 'label': 0
             })
 
-    # 🚨 [완벽 수정 완료] 두개의 for문이 250번씩 다 돌고 빠져나온 깔끔한 4칸 공백 라인!
+    # 데이터프레임 빌드 및 최적화 학습 진행
     df = pd.DataFrame(data_list)
     df['total_content'] = df['title'].fillna('') + " " + df['text'].fillna('')
     
     X = df['total_content']
     y = df['label']
     
-    # 문맥 중심 튜닝 및 자극적 키워드 급발진 억제
+    # 황금 밸런스 튜닝 (급발진 억제 세팅)
     tfidf = TfidfVectorizer(max_features=1000, min_df=2, ngram_range=(1, 2))
     X_tfidf = tfidf.fit_transform(X)
     
@@ -386,7 +391,7 @@ except Exception as e:
     st.error(f"⚠️ 데이터셋 로딩 및 학습 중 오류 발생: {str(e)}")
 
 # =========================================================================
-# [2단계] 뉴스 입력 및 판별 구역
+# [5단계] 뉴스 기사 입력창 및 실시간 판별 스위치
 # =========================================================================
 news_text = st.text_area("뉴스 기사 입력", placeholder="여기에 뉴스 기사를 붙여넣으세요...", height=200)
 
@@ -395,17 +400,17 @@ if st.button("AI 모델로 판별하기"):
         st.warning("⚠️ 뉴스 기사를 입력해주세요!")
     else:
         try:
-            # 특수 공백 제거
+            # 특수 공백 제거 전처리
             cleaned_input = re.sub(r'[\s\xa0\t\n\r]+', ' ', news_text).strip()
             
-            # 실시간 동기화된 엔진으로 바로 예측
+            # 실시간 동적 확률 연산 예측
             text_vector = tfidf.transform([cleaned_input])
             prob = model.predict_proba(text_vector)[0]
             
             fake_prob = prob[0] * 100  # label 0
             real_prob = prob[1] * 100  # label 1
             
-            # 결과 출력
+            # 결과 시각화 출력
             st.subheader("📊 AI 분석 결과")
             st.write(f"- **진짜 뉴스일 확률:** {real_prob:.1f}%")
             st.write(f"- **가짜 뉴스일 확률:** {fake_prob:.1f}%")
