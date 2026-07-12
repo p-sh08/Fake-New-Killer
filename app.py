@@ -391,11 +391,14 @@ def train_ai_model():
     X = df['total_content']
     y = df['label']
     
-    # 💡 웹창에서도 널뛰기하도록 튜닝 완화 (max_features 제거 및 C값 업)
-    tfidf = TfidfVectorizer(min_df=1, ngram_range=(1, 1))
+   # 1. 단어 사전을 단어 1개(1,1)가 아니라 1~2개 조합(1,2)으로 묶어서 문맥을 보게 합니다.
+    # max_features를 1000으로 제한해서 너무 자극적인 단어에만 집착하지 않도록 만듭니다.
+    tfidf = TfidfVectorizer(max_features=1000, min_df=2, ngram_range=(1, 2))
     X_tfidf = tfidf.fit_transform(X)
     
-    model = LogisticRegression(C=1000.0, max_iter=10000)
+    # 2. 브레이크(C값)를 1000.0에서 5.0으로 대폭 낮춥니다! 
+    # AI가 급발진하지 않고 진짜와 가짜 사이에서 확률을 훨씬 부드럽고 자연스럽게 뱉어내게 만듭니다.
+    model = LogisticRegression(C=5.0, max_iter=5000)
     model.fit(X_tfidf, y)
     
     return tfidf, model
