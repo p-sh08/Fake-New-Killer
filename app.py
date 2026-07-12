@@ -7,10 +7,19 @@ import re
 st.title("🤖 AI 가짜 뉴스 검출 시스템 (Real AI v7)")
 st.markdown("---")
 st.write("서버 내에서 500개 데이터셋을 실시간 학습하여 오차 없이 판별합니다.")
-st.write("문장과 문장 사이에 띄어 쓰기 하나만 있도록, 한문단으로 기사 수정 후 입력 해 주세요.")
 
-
-titles_real_good = [
+# =========================================================================
+# [1단계] 형이 코랩에 짰던 500개 데이터셋 빌드 코드 그대로 복붙하는 구역
+# =========================================================================
+@st.cache_resource  # 💡 중요: 들어올 때마다 매번 학습하면 느려지니까 딱 한 번만 학습하게 고정!
+def train_ai_model():
+    data_list = []
+    
+    # ---------------------------------------------------------------------
+    # 🔥여기에 형이 코랩에 적었던 titles_real_good, texts_real_good, 
+    # titles_fake_good, texts_fake_good이랑 데이터 채우는 for문 소스코드를 
+    # '그대로' 복사해서 이 사이에 집어넣어 줘!!!
+    titles_real_good = [
     "정부, 내년부터 고등학교 무상교육 전면 확대 발표", "질병관리청, 올해 독감 예방접종 무료 대상자 확대",
     "환경부, 일회용 플라스틱 컵 규제 단속 강화", "시중 유통 중인 일부 생수에서 미세먼지 기준치 초과",
     "서울시, 청년 대중교통비 지원 사업 신청 시작", "한국은행, 기준금리 연 3.5%로 다시 동결 결정",
@@ -322,64 +331,25 @@ texts_fake_good = [
     "안과 질환 커뮤니티에 스마트폰 카메라 렌즈에 탑재된 신형 오토포커스 센서에서 시력 세포를 즉시 파괴하는 보이지 않는 미세 레이저가 방출되니 카메라를 보지 말라는 가짜 과학 괴소문이 퍼졌습니다.",
     "해외 음모론 블로그 번역 글을 인용하여 정부가 다음 달 1일부터 전 국민을 대상으로 신원 관리 및 감시 목적의 미세 바이오칩을 이마 피부 아래에 강제 이식 의무화한다는 가짜 정보가 유포되었습니다."
 ]
+    # ---------------------------------------------------------------------
+    # (예시 구조 - 형이 짠 코드로 대체해야 함)
+    # for t, txt in zip(titles_real_good, texts_real_good):
+    #     data_list.append({'title': t, 'text': txt, 'label': 1})
+    # for t, txt in zip(titles_fake_good, texts_fake_good):
+    #     data_list.append({'title': t, 'text': txt, 'label': 0})
+    # ---------------------------------------------------------------------
 
-# =========================================================================
-st.title("🤖 AI 가짜 뉴스 검출 시스템 (Real AI v7)")
-st.markdown("---")
-st.write("서버 내에서 500개 데이터셋을 실시간 학습하여 오차 없이 판별합니다.")
-st.write("문장과 문장 사이에 띄어 쓰기 하나만 있도록, 한문단으로 기사 수정 후 입력 해 주세요.")
-
-# =========================================================================
-# [4단계] 실시간 AI 학습 엔진 함수 (유령 문자 제거 및 4칸 정렬 완벽 반영)
-# =========================================================================
-@st.cache_resource
-def train_ai_model():
-    global titles_real_good, texts_real_good, titles_fake_good, texts_fake_good
-    
-    data_list = []
-    
-    # 진짜 뉴스 데이터 250개 맞춤 빌드 (100개 원본 + 150개 보충)
-    for i in range(250):
-        if i < len(titles_real_good):
-            data_list.append({
-                'title': titles_real_good[i],
-                'text': texts_real_good[i],
-                'label': 1
-            })
-        else:
-            data_list.append({
-                'title': f"정부 공식 발표 검증 확인 뉴스 {i+1}",
-                'text': f"이 정보 기사 본문 내용은 공공 기관 공식 채널 및 지자체의 신뢰성 높은 데이터를 바탕으로 사실 관계가 확인된 진짜뉴스 샘플 {i+1}번 텍스트 항목입니다.",
-                'label': 1
-            })
-
-    # 가짜 뉴스 데이터 250개 맞춤 빌드 (100개 원본 + 150개 패턴 저격용 보충)
-    for i in range(250):
-        if i < len(titles_fake_good):
-            data_list.append({
-                'title': titles_fake_good[i],
-                'text': texts_fake_good[i],
-                'label': 0
-            })
-        else:
-            data_list.append({
-                'title': f"[속보] 충격적인 음모 폭로 루머 {i+1}",
-                'text': f"소셜 미디어 유포 내용에 따르면 충격적이게도 비밀리에 핵폭탄을 터뜨려 국가가 완전히 망한것으로 밝혀졌습니다. 사실 무근인 가짜뉴스 샘플 {i+1}번 항목입니다.",
-                'label': 0
-            })
-
-    # 데이터프레임 빌드 및 최적화 학습 진행
     df = pd.DataFrame(data_list)
     df['total_content'] = df['title'].fillna('') + " " + df['text'].fillna('')
     
+    # 순수 코랩 로직 그대로 학습 진행
     X = df['total_content']
     y = df['label']
     
-    # 황금 밸런스 튜닝 (급발진 억제 세팅)
-    tfidf = TfidfVectorizer(max_features=1000, min_df=2, ngram_range=(1, 2))
+    tfidf = TfidfVectorizer(max_features=2000, min_df=2, ngram_range=(1, 2))
     X_tfidf = tfidf.fit_transform(X)
     
-    model = LogisticRegression(C=5.0, max_iter=5000)
+    model = LogisticRegression(C=3.0, max_iter=5000)
     model.fit(X_tfidf, y)
     
     return tfidf, model
@@ -391,7 +361,7 @@ except Exception as e:
     st.error(f"⚠️ 데이터셋 로딩 및 학습 중 오류 발생: {str(e)}")
 
 # =========================================================================
-# [5단계] 뉴스 기사 입력창 및 실시간 판별 스위치
+# [2단계] 뉴스 입력 및 판별 구역
 # =========================================================================
 news_text = st.text_area("뉴스 기사 입력", placeholder="여기에 뉴스 기사를 붙여넣으세요...", height=200)
 
@@ -400,17 +370,17 @@ if st.button("AI 모델로 판별하기"):
         st.warning("⚠️ 뉴스 기사를 입력해주세요!")
     else:
         try:
-            # 특수 공백 제거 전처리
+            # 특수 공백 제거
             cleaned_input = re.sub(r'[\s\xa0\t\n\r]+', ' ', news_text).strip()
             
-            # 실시간 동적 확률 연산 예측
+            # 실시간 동기화된 엔진으로 바로 예측
             text_vector = tfidf.transform([cleaned_input])
             prob = model.predict_proba(text_vector)[0]
             
             fake_prob = prob[0] * 100  # label 0
             real_prob = prob[1] * 100  # label 1
             
-            # 결과 시각화 출력
+            # 결과 출력
             st.subheader("📊 AI 분석 결과")
             st.write(f"- **진짜 뉴스일 확률:** {real_prob:.1f}%")
             st.write(f"- **가짜 뉴스일 확률:** {fake_prob:.1f}%")
