@@ -1,7 +1,26 @@
 
+import streamlit as st
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+import re
 
+st.title("🤖 AI 가짜 뉴스 검출 시스템 (Real AI v7)")
+st.markdown("---")
+st.write("서버 내에서 500개 데이터셋을 실시간 학습하여 오차 없이 판별합니다.")
+st.write("문장과 문장 사이에 띄어 쓰기 하나만 있도록, 한문단으로 기사 수정 후 입력 해 주세요.")
 
+# =========================================================================
+# [1단계] 실시간 AI 학습 함수 (들여쓰기 완벽 수정 버전)
+# =========================================================================
+@st.cache_resource  
+def train_ai_model():
+    # 💡 형이 선언해 둔 리스트 변수들을 함수 안에서 인식할 수 있게 연결
+    # (만약 코드 윗부분에 이 리스트들이 선언되어 있다면 정상 작동합니다.)
+    global titles_real_good, texts_real_good, titles_fake_good, texts_fake_good
     
+    data_list = []
+
     # ---------------------------------------------------------------------
     # 🔥여기에 형이 코랩에 적었던 titles_real_good, texts_real_good, 
     # titles_fake_good, texts_fake_good이랑 데이터 채우는 for문 소스코드를 
@@ -320,27 +339,6 @@ texts_fake_good = [
     "해외 음모론 블로그 번역 글을 인용하여 정부가 다음 달 1일부터 전 국민을 대상으로 신원 관리 및 감시 목적의 미세 바이오칩을 이마 피부 아래에 강제 이식 의무화한다는 가짜 정보가 유포되었습니다."
 ]
 
-import streamlit as st
-import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
-import re
-
-st.title("🤖 AI 가짜 뉴스 검출 시스템 (Real AI v7)")
-st.markdown("---")
-st.write("서버 내에서 500개 데이터셋을 실시간 학습하여 오차 없이 판별합니다.")
-st.write("문장과 문장 사이에 띄어 쓰기 하나만 있도록, 한문단으로 기사 수정 후 입력 해 주세요.")
-
-# =========================================================================
-# [1단계] 실시간 AI 학습 함수 (들여쓰기 완벽 수정 버전)
-# =========================================================================
-@st.cache_resource  
-def train_ai_model():
-    # 💡 형이 선언해 둔 리스트 변수들을 함수 안에서 인식할 수 있게 연결
-    # (만약 코드 윗부분에 이 리스트들이 선언되어 있다면 정상 작동합니다.)
-    global titles_real_good, texts_real_good, titles_fake_good, texts_fake_good
-    
-    data_list = []
     
     # 진짜 뉴스 데이터 250개 맞춤 빌드 (100개 원본 + 150개 보충)
     for i in range(250):
