@@ -1,3 +1,15 @@
+import streamlit as st
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+import re
+
+st.title("🤖 AI 가짜 뉴스 검출 시스템 (Real AI v7)")
+st.markdown("---")
+st.write("서버 내에서 500개 데이터셋을 실시간 학습하여 오차 없이 판별합니다.")
+st.write("문장과 문장 사이에 띄어 쓰기 하나만 있도록, 한문단으로 기사 수정 후 입력 해 주세요.")
+
+
 titles_real_good = [
     "정부, 내년부터 고등학교 무상교육 전면 확대 발표", "질병관리청, 올해 독감 예방접종 무료 대상자 확대",
     "환경부, 일회용 플라스틱 컵 규제 단속 강화", "시중 유통 중인 일부 생수에서 미세먼지 기준치 초과",
@@ -311,16 +323,6 @@ texts_fake_good = [
     "해외 음모론 블로그 번역 글을 인용하여 정부가 다음 달 1일부터 전 국민을 대상으로 신원 관리 및 감시 목적의 미세 바이오칩을 이마 피부 아래에 강제 이식 의무화한다는 가짜 정보가 유포되었습니다."
 ]
 
-import streamlit as st
-import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
-import re
-
-st.title("🤖 AI 가짜 뉴스 검출 시스템 (Real AI v7)")
-st.markdown("---")
-st.write("서버 내에서 500개 데이터셋을 실시간 학습하여 오차 없이 판별합니다.")
-st.write("문장과 문장 사이에 띄어 쓰기 하나만 있도록, 한문단으로 기사 수정 후 입력 해 주세요.")
 
 # =========================================================================
 # [1단계] 실시간 AI 학습 함수 (들여쓰기 및 유령 문자 완벽 제거)
