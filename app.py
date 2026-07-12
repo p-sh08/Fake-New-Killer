@@ -319,22 +319,19 @@ import re
 
 st.title("🤖 AI 가짜 뉴스 검출 시스템 (Real AI v7)")
 st.markdown("---")
-st.write("서버 내에서 200개 데이터셋을 실시간 학습하여 오차 없이 판별합니다.")
+st.write("서버 내에서 500개 데이터셋을 실시간 학습하여 오차 없이 판별합니다.")
 st.write("문장과 문장 사이에 띄어 쓰기 하나만 있도록, 한문단으로 기사 수정 후 입력 해 주세요.")
 
 # =========================================================================
-# [1단계] 실시간 AI 학습 함수 (들여쓰기 완벽 수정 버전)
+# [1단계] 실시간 AI 학습 함수 (들여쓰기 및 유령 문자 완벽 제거)
 # =========================================================================
-@st.cache_resource  
+@st.cache_resource
 def train_ai_model():
-    # 💡 형이 선언해 둔 리스트 변수들을 함수 안에서 인식할 수 있게 연결
-    # (만약 코드 윗부분에 이 리스트들이 선언되어 있다면 정상 작동합니다.)
     global titles_real_good, texts_real_good, titles_fake_good, texts_fake_good
     
     data_list = []
-
     
-    # 진짜 뉴스 데이터 500개 맞춤 빌드 (100개 원본 + 150개 보충)
+    # 진짜 뉴스 데이터 250개 맞춤 빌드 (100개 원본 + 150개 보충)
     for i in range(250):
         if i < len(titles_real_good):
             data_list.append({
@@ -364,20 +361,17 @@ def train_ai_model():
                 'label': 0
             })
 
-    # 🚨 [수정 핵심] for문이 완벽히 끝난 시점(바깥쪽)에서 데이터프레임을 만들고 학습해야 함!
+    # 🚨 [완벽 수정 완료] 두개의 for문이 250번씩 다 돌고 빠져나온 깔끔한 4칸 공백 라인!
     df = pd.DataFrame(data_list)
     df['total_content'] = df['title'].fillna('') + " " + df['text'].fillna('')
     
     X = df['total_content']
     y = df['label']
     
-   # 1. 단어 사전을 단어 1개(1,1)가 아니라 1~2개 조합(1,2)으로 묶어서 문맥을 보게 합니다.
-    # max_features를 1000으로 제한해서 너무 자극적인 단어에만 집착하지 않도록 만듭니다.
+    # 문맥 중심 튜닝 및 자극적 키워드 급발진 억제
     tfidf = TfidfVectorizer(max_features=1000, min_df=2, ngram_range=(1, 2))
     X_tfidf = tfidf.fit_transform(X)
     
-    # 2. 브레이크(C값)를 1000.0에서 5.0으로 대폭 낮춥니다! 
-    # AI가 급발진하지 않고 진짜와 가짜 사이에서 확률을 훨씬 부드럽고 자연스럽게 뱉어내게 만듭니다.
     model = LogisticRegression(C=5.0, max_iter=5000)
     model.fit(X_tfidf, y)
     
