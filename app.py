@@ -4,22 +4,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 import re
 
-st.title("🤖 AI 가짜 뉴스 검출 시스템 (Real AI v7)")
-st.markdown("---")
-st.write("서버 내에서 500개 데이터셋을 실시간 학습하여 오차 없이 판별합니다.")
-
-# =========================================================================
-# [1단계] 형이 코랩에 짰던 500개 데이터셋 빌드 코드 그대로 복붙하는 구역
-# =========================================================================
-@st.cache_resource  # 💡 중요: 들어올 때마다 매번 학습하면 느려지니까 딱 한 번만 학습하게 고정!
-def train_ai_model():
-    data_list = []
-    # ---------------------------------------------------------------------
-    # 🔥여기에 형이 코랩에 적었던 titles_real_good, texts_real_good, 
-    # titles_fake_good, texts_fake_good이랑 데이터 채우는 for문 소스코드를 
-    # '그대로' 복사해서 이 사이에 집어넣어 줘!!!
-    # 1. 고퀄리티 진짜 뉴스 리스트 (100개)
-    titles_real_good = [
+titles_real_good = [
 "정부, 내년부터 고등학교 무상교육 전면 확대 발표", "질병관리청, 올해 독감 예방접종 무료 대상자 확대",
 "환경부, 일회용 플라스틱 컵 규제 단속 강화", "시중 유통 중인 일부 생수에서 미세먼지 기준치 초과",
 "서울시, 청년 대중교통비 지원 사업 신청 시작", "한국은행, 기준금리 연 3.5%로 다시 동결 결정",
@@ -72,7 +57,7 @@ def train_ai_model():
 "특허청, 가상현실 3D 디자인 상표 등록 보호 법안 시행 규칙 개정", "기상청, 한반도 주변 황사 유입 경로 실시간 추적 예측 실무 적용"
 ]
 
-    texts_real_good = [
+texts_real_good = [
 "교육부는 교육 격차 해소를 위해 내년부터 전국 모든 고등학교의 입학금과 수업료를 전면 면제하는 무상교육 정책을 예산 편성 조정을 통해 확정 발표했습니다.",
 "질병관리청은 환절기 독감 유행을 막기 위해 무료 예방접종 대상을 기존 영유아와 고령층에서 청소년층까지 전면 확대 시행한다고 밝혔습니다.",
 "환경부는 카페와 음식점 내 일회용 플라스틱 컵 사용을 금지하고, 이를 위반할 시 과태료를 부과하는 집중 단속 기간을 다음 달부터 운영합니다.",
@@ -176,7 +161,7 @@ def train_ai_model():
 ]
 
 # 2. 고퀄리티 가짜 뉴스 리스트 (100개)
-    titles_fake_good = [
+titles_fake_good = [
 "충격, 내일부터 전국 고등학교 임시 휴교령 내려진다", "화성 표면에서 외계인 생명체 기지 무더기 발견",
 "모레 전 세계 인터넷 망 24시간 동안 전면 마비", "특정 브랜드 생수 마시면 암 완치된다는 소문 확산",
 "정부, 다음 달부터 모든 국민에게 재난지원금 100만 원 지급", "유명 연예인, 음주운전 사고로 현장 체포 루머",
@@ -229,7 +214,7 @@ def train_ai_model():
 "스마트폰 카메라 렌즈 통해 시력 파괴 레이저 방출 괴소문", "정부 다음 달부터 모든 국민 대상 이마에 칩 이식 의무화 조작"
 ]
 
-    texts_fake_good = [
+texts_fake_good = [
 "SNS를 통해 급속도로 확산 중인 교육부 사칭 안내문에 따르면 예산 부족으로 인해 내일부터 전국 고등학교가 무기한 임시 휴교에 돌입한다는 허무맹랑한 루머가 돌고 있습니다.",
 "비밀리에 운영되는 한 해외 음모론 블로그에 따르면 NASA가 최근 화성 탐사선이 촬영한 사진 속에서 거대한 외계 문명의 기지와 구조물을 발견하고 은폐 중이라는 조작된 글이 올라왔습니다.",
 "특정 유튜브 채널에서 태양풍의 영향으로 모레 아침부터 전 세계의 인터넷과 금융 전산망이 24시간 동안 완전히 셧다운될 것이라는 가짜뉴스가 퍼져 대중들의 불안을 조장하고 있습니다.",
@@ -332,114 +317,58 @@ def train_ai_model():
 "해외 음모론 블로그 번역 글을 인용하여 정부가 다음 달 1일부터 전 국민을 대상으로 신원 관리 및 감시 목적의 미세 바이오칩을 이마 피부 아래에 강제 이식 의무화한다는 가짜 정보가 유포되었습니다."
 ]
 
-import streamlit as st
-import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
-import re
-
 st.title("🤖 AI 가짜 뉴스 검출 시스템 (Real AI v7)")
 st.markdown("---")
 st.write("서버 내에서 500개 데이터셋을 실시간 학습하여 오차 없이 판별합니다.")
-st.write("문장과 문장 사이에 띄어 쓰기 하나만 있도록, 한문단으로 기사 수정 후 입력 해 주세요.")
 
 # =========================================================================
-# [1단계] 실시간 AI 학습 함수 (들여쓰기 완벽 수정 버전)
+# [1단계] 실시간 AI 학습 함수
 # =========================================================================
-@st.cache_resource  
+@st.cache_resource
 def train_ai_model():
-# 💡 형이 선언해 둔 리스트 변수들을 함수 안에서 인식할 수 있게 연결
-# (만약 코드 윗부분에 이 리스트들이 선언되어 있다면 정상 작동합니다.)
-global titles_real_good, texts_real_good, titles_fake_good, texts_fake_good
+    global titles_real_good, texts_real_good, titles_fake_good, texts_fake_good
+    data_list = []
 
-data_list = []
+    # 진짜 뉴스 데이터 빌드
+    for i in range(250):
+        if i < len(titles_real_good):
+            data_list.append({'title': titles_real_good[i], 'text': texts_real_good[i], 'label': 1})
+        else:
+            data_list.append({'title': "진짜뉴스 샘플", 'text': "신뢰할 수 있는 데이터입니다.", 'label': 1})
 
+    # 가짜 뉴스 데이터 빌드
+    for i in range(250):
+        if i < len(titles_fake_good):
+            data_list.append({'title': titles_fake_good[i], 'text': texts_fake_good[i], 'label': 0})
+        else:
+            data_list.append({'title': "[속보] 가짜뉴스 샘플", 'text': "충격적인 루머입니다.", 'label': 0})
 
-# 진짜 뉴스 데이터 250개 맞춤 빌드 (100개 원본 + 150개 보충)
-for i in range(250):
-if i < len(titles_real_good):
-data_list.append({
-'title': titles_real_good[i],
-'text': texts_real_good[i],
-'label': 1
-})
-else:
-data_list.append({
-'title': f"정부 공식 발표 검증 확인 뉴스 {i+1}",
-'text': f"이 정보 기사 본문 내용은 공공 기관 공식 채널 및 지자체의 신뢰성 높은 데이터를 바탕으로 사실 관계가 확인된 진짜뉴스 샘플 {i+1}번 텍스트 항목입니다.",
-'label': 1
-})
-
-# 가짜 뉴스 데이터 250개 맞춤 빌드 (100개 원본 + 150개 패턴 저격용 보충)
-for i in range(250):
-if i < len(titles_fake_good):
-data_list.append({
-'title': titles_fake_good[i],
-'text': texts_fake_good[i],
-'label': 0
-})
-else:
-data_list.append({
-'title': f"[속보] 충격적인 음모 폭로 루머 {i+1}",
-'text': f"소셜 미디어 유포 내용에 따르면 충격적이게도 비밀리에 핵폭탄을 터뜨려 국가가 완전히 망한것으로 밝혀졌습니다. 사실 무근인 가짜뉴스 샘플 {i+1}번 항목입니다.",
-'label': 0
-})
-
-# 🚨 [수정 핵심] for문이 완벽히 끝난 시점(바깥쪽)에서 데이터프레임을 만들고 학습해야 함!
-df = pd.DataFrame(data_list)
-df['total_content'] = df['title'].fillna('') + " " + df['text'].fillna('')
-
-X = df['total_content']
-y = df['label']
-
-# 1. 단어 사전을 단어 1개(1,1)가 아니라 1~2개 조합(1,2)으로 묶어서 문맥을 보게 합니다.
-# max_features를 1000으로 제한해서 너무 자극적인 단어에만 집착하지 않도록 만듭니다.
-tfidf = TfidfVectorizer(max_features=1000, min_df=2, ngram_range=(1, 2))
-X_tfidf = tfidf.fit_transform(X)
-
-# 2. 브레이크(C값)를 1000.0에서 5.0으로 대폭 낮춥니다! 
-# AI가 급발진하지 않고 진짜와 가짜 사이에서 확률을 훨씬 부드럽고 자연스럽게 뱉어내게 만듭니다.
-model = LogisticRegression(C=5.0, max_iter=5000)
-model.fit(X_tfidf, y)
-
-return tfidf, model
+    df = pd.DataFrame(data_list)
+    df['total_content'] = df['title'].fillna('') + " " + df['text'].fillna('')
+    
+    tfidf = TfidfVectorizer(max_features=1000, min_df=2, ngram_range=(1, 2))
+    X_tfidf = tfidf.fit_transform(df['total_content'])
+    model = LogisticRegression(C=5.0, max_iter=5000)
+    model.fit(X_tfidf, df['label'])
+    
+    return tfidf, model
 
 # AI 엔진 시동
 try:
-tfidf, model = train_ai_model()
+    tfidf, model = train_ai_model()
 except Exception as e:
-st.error(f"⚠️ 데이터셋 로딩 및 학습 중 오류 발생: {str(e)}")
+    st.error(f"⚠️ 학습 오류: {str(e)}")
 
 # =========================================================================
-# [2단계] 뉴스 입력 및 판별 구역
+# [2단계] 뉴스 입력 및 판별
 # =========================================================================
-news_text = st.text_area("뉴스 기사 입력", placeholder="여기에 뉴스 기사를 붙여넣으세요...", height=200)
+news_text = st.text_area("뉴스 기사 입력", height=200)
 
 if st.button("AI 모델로 판별하기"):
-if news_text.strip() == "":
-st.warning("⚠️ 뉴스 기사를 입력해주세요!")
-else:
-try:
-# 특수 공백 제거
-cleaned_input = re.sub(r'[\s\xa0\t\n\r]+', ' ', news_text).strip()
-
-# 실시간 동기화된 엔진으로 바로 예측
-text_vector = tfidf.transform([cleaned_input])
-prob = model.predict_proba(text_vector)[0]
-
-fake_prob = prob[0] * 100  # label 0
-real_prob = prob[1] * 100  # label 1
-
-# 결과 출력
-st.subheader("📊 AI 분석 결과")
-st.write(f"- **진짜 뉴스일 확률:** {real_prob:.1f}%")
-st.write(f"- **가짜 뉴스일 확률:** {fake_prob:.1f}%")
-st.markdown("---")
-
-if fake_prob > 50:
-st.error("🚨 주의: 가짜 뉴스일 가능성이 높습니다!")
-else:
-st.success("🍏 확인: 신뢰할 수 있는 진짜 뉴스입니다.")
-
-except Exception as e:
-st.error(f"❌ 판별 오류: {str(e)}")
+    if news_text.strip():
+        cleaned_input = re.sub(r'[\s\xa0\t\n\r]+', ' ', news_text).strip()
+        text_vector = tfidf.transform([cleaned_input])
+        prob = model.predict_proba(text_vector)[0]
+        
+        st.write(f"진짜일 확률: {prob[1]*100:.1f}%")
+        st.write(f"가짜일 확률: {prob[0]*100:.1f}%")
